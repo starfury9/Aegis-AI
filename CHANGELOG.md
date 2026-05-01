@@ -28,3 +28,4 @@ Incremental notes while building the MVP for judging narratives.
 - Milestone 24: iterated on agents, stealth UI, signing, IPFS pinning, UX polish.
 - Milestone 25: iterated on agents, stealth UI, signing, IPFS pinning, UX polish.
 - Milestone 26: iterated on agents, stealth UI, signing, IPFS pinning, UX polish.
+- Milestone 27: iterated on agents, stealth UI, signing, IPFS pinning, UX polish.

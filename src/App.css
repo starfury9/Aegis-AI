@@ -1,0 +1,173 @@
+.shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 1.25rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.topbar h1 {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: #111824;
+  border: 1px solid #22314a;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.card.wide {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.field span {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.banner {
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.banner.error {
+  border-color: #7f1d1d;
+  background: #2a1111;
+  color: #fecaca;
+}
+
+.link {
+  color: #93c5fd;
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.hint {
+  margin-top: 0.35rem !important;
+  font-size: 0.9rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.status {
+  margin-top: 0.8rem;
+  font-weight: 600;
+}
+
+.muted {
+  color: #9fb0ca;
+  margin: 0.3rem 0;
+}
+
+.logs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.alert {
+  margin-top: 0.75rem;
+  border: 1px solid #7f1d1d;
+  background: #2a1111;
+  color: #fecaca;
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+.calculator {
+  width: min(360px, 100%);
+  margin: 4rem auto;
+  background: #121826;
+  border: 1px solid #24314c;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.badge {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.screen {
+  margin: 0.75rem 0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: right;
+  font-size: 1.4rem;
+  background: #0f172a;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+button,
+input,
+textarea {
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 0.55rem 0.7rem;
+}
+
+button {
+  cursor: pointer;
+}
+
+textarea,
+input[type='file'] {
+  width: 100%;
+}
+
+ol {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

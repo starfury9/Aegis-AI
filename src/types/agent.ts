@@ -43,6 +43,4 @@ export interface SosResult {
   wipeStatus: 'completed'
   trustedContact: string
   chainId?: string
-  /** Present when SOS used KeeperHub Direct Execution. */
-  keeperHubExecutionId?: string
 }

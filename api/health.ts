@@ -1,7 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-import { keeperHubSosEnvReady } from '../server/keeperhubSos.ts'
-
 export default function handler(_req: VercelRequest, res: VercelResponse) {
   const OG_RPC_URL = process.env.OG_STORAGE_RPC_URL ?? 'https://evmrpc-testnet.0g.ai'
   const OG_INDEXER_RPC = process.env.OG_STORAGE_INDEXER_RPC ?? 'https://indexer-storage-testnet-turbo.0g.ai'
@@ -16,7 +14,6 @@ export default function handler(_req: VercelRequest, res: VercelResponse) {
     runtime: 'vercel-serverless',
     storageBackend: '0g-storage',
     ogStorageConfigured: Boolean(OG_PRIVATE_KEY.length),
-    keeperHubSosConfigured: keeperHubSosEnvReady(),
     chainRpc: OG_RPC_URL,
     indexerRpc: OG_INDEXER_RPC,
     storagescan: OG_VERIFY_BASE,

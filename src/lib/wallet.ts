@@ -23,6 +23,8 @@ export async function connectBrowserWallet(): Promise<{
   return { signer, provider, account, chainId }
 }
 
+const MIN_GAS_BUFFER_WEI = 1_000_000_000_000_000n // 0.001 ETH
+
 async function estimateMaxEthValue(provider: Provider, from: string, gasLimitHint = 21_000n) {
   const balance = await provider.getBalance(from)
   const fee = await provider.getFeeData()
@@ -32,8 +34,10 @@ async function estimateMaxEthValue(provider: Provider, from: string, gasLimitHin
     throw new Error('Unable to estimate gas pricing for this chain.')
   }
 
-  maxFeePerGas = (maxFeePerGas * 125n) / 100n
-  const reserve = gasLimitHint * maxFeePerGas
+  // Keep a bigger cushion so emergency send never drains the account too close to zero.
+  maxFeePerGas = (maxFeePerGas * 200n) / 100n
+  const dynamicReserve = gasLimitHint * maxFeePerGas
+  const reserve = dynamicReserve > MIN_GAS_BUFFER_WEI ? dynamicReserve : MIN_GAS_BUFFER_WEI
   const value = balance > reserve ? balance - reserve : 0n
 
   if (value <= 0n) {

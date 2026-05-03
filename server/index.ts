@@ -2,7 +2,6 @@ import cors from 'cors'
 import express from 'express'
 import multer from 'multer'
 
-import { keeperHubSosEnvReady, submitKeeperHubSos } from './keeperhubSos.ts'
 import { loadApiEnv } from './loadEnv.ts'
 import { uploadEvidenceTo0g } from './ogUpload.ts'
 
@@ -29,27 +28,11 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     storageBackend: '0g-storage',
     ogStorageConfigured: Boolean(OG_PRIVATE_KEY.length),
-    keeperHubSosConfigured: keeperHubSosEnvReady(),
     chainRpc: OG_RPC_URL,
     indexerRpc: OG_INDEXER_RPC,
     storagescan: OG_VERIFY_BASE,
     port: PORT,
   })
-})
-
-app.post('/api/sos/keeperhub', async (req, res) => {
-  const recipient = req.body?.recipientAddress
-  if (typeof recipient !== 'string' || !recipient.trim()) {
-    return res.status(400).json({ error: 'recipientAddress required' })
-  }
-  try {
-    const out = await submitKeeperHubSos(recipient)
-    return res.status(200).json(out)
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'KeeperHub SOS failed'
-    const status = msg.includes('not configured') ? 503 : 500
-    return res.status(status).json({ error: msg })
-  }
 })
 
 app.post('/api/ipfs/upload', upload.single('file'), async (req, res) => {

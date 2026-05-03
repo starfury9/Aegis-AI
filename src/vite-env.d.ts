@@ -2,8 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE?: string
-  /** Route SOS via KeeperHub when API exposes /api/sos/keeperhub and env is configured server-side */
-  readonly VITE_SOS_USE_KEEPERHUB?: string
   /** Canonical deployed app URL (no trailing slash), e.g. https://your-app.vercel.app */
   readonly VITE_LIVE_APP_URL?: string
   /** Optional separate landing deployment */

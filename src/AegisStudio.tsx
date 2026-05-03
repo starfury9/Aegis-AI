@@ -5,13 +5,11 @@ import {
   assessRisk,
   generateEscapePlan,
   prepareEmergencyTransfer,
-  triggerSos,
 } from './lib/agentOrchestrator'
 import {
   EvidenceUploadError,
   uploadEvidenceViaApi,
 } from './lib/evidenceApi'
-import { keeperHubSosAdvertisedReady, requestKeeperHubSos } from './lib/keeperhubSosApi'
 import {
   connectBrowserWallet,
   normalizeAddress,
@@ -178,73 +176,39 @@ export default function AegisStudio() {
 
   const runSosEmergency = async (
     resolvedTrusted: string,
-  ): Promise<{ result: SosResult; mode: 'keeperhub' | 'chain' | 'demo' }> => {
-    const useKeeperhub = await keeperHubSosAdvertisedReady()
-    if (useKeeperhub) {
-      const kh = await requestKeeperHubSos(resolvedTrusted)
-      return {
-        mode: 'keeperhub',
-        result: {
-          wipeStatus: 'completed',
-          trustedContact: kh.trustedContact,
-          transferTxHash: kh.transferTxHash,
-          chainId: kh.chainId,
-          keeperHubExecutionId: kh.keeperHubExecutionId,
-        },
-      }
+  ): Promise<{ result: SosResult; mode: 'chain' }> => {
+    if (!signerRef.current || !providerRef.current) {
+      throw new Error('Connect MetaMask before triggering SOS.')
     }
 
-    if (signerRef.current && providerRef.current) {
-      const receipt = await sendEmergencyEthTransfer({
-        signer: signerRef.current,
-        provider: providerRef.current,
-        toChecksummed: resolvedTrusted,
-      })
+    const receipt = await sendEmergencyEthTransfer({
+      signer: signerRef.current,
+      provider: providerRef.current,
+      toChecksummed: resolvedTrusted,
+    })
 
-      return {
-        mode: 'chain',
-        result: {
-          wipeStatus: 'completed',
-          trustedContact: resolvedTrusted,
-          transferTxHash: receipt.transferTxHash,
-          chainId: receipt.chainId,
-        },
-      }
+    return {
+      mode: 'chain',
+      result: {
+        wipeStatus: 'completed',
+        trustedContact: resolvedTrusted,
+        transferTxHash: receipt.transferTxHash,
+        chainId: receipt.chainId,
+      },
     }
-
-    const mocked = await triggerSos(resolvedTrusted)
-    return { mode: 'demo', result: mocked.result }
   }
 
-  const finalizeSosLogs = (result: SosResult, mode: 'keeperhub' | 'chain' | 'demo') => {
+  const finalizeSosLogs = (result: SosResult) => {
     setEvidence(null)
     setPlan([])
     setRisk(null)
-
-    const modeLabel =
-      mode === 'keeperhub'
-        ? 'Emergency protocol executed (KeeperHub)'
-        : mode === 'chain'
-          ? 'Emergency protocol executed (MetaMask signer)'
-          : 'Emergency protocol executed (offline demo)'
-
-    const detailParts =
-      mode === 'demo'
-        ? [`Simulated transfer hash ${result.transferTxHash}`]
-        : [
-            ...(result.chainId ? [`Chain ${result.chainId}`] : []),
-            `Tx ${result.transferTxHash}`,
-            ...(mode === 'keeperhub' && result.keeperHubExecutionId
-              ? [`KeeperHub execution ${result.keeperHubExecutionId}`]
-              : []),
-          ]
 
     const entry: AgentLog = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
       agent: 'SOS Agent',
-      action: modeLabel,
-      details: detailParts.join(' · '),
+      action: 'Emergency protocol executed (on-chain transfer)',
+      details: `Chain ${result.chainId ?? 'unknown'}, tx hash ${result.transferTxHash}`,
       severity: 'critical',
     }
 
@@ -283,7 +247,7 @@ export default function AegisStudio() {
       }
 
       const sos = await runSosEmergency(resolvedTrusted)
-      finalizeSosLogs(sos.result, sos.mode)
+      finalizeSosLogs(sos.result)
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'SOS activation failed unexpectedly.'
@@ -384,9 +348,7 @@ export default function AegisStudio() {
               />
             </label>
             <div className="muted">
-              Use a funded test wallet on Sepolia/Base Sepolia/etc. When VITE_SOS_USE_KEEPERHUB=true and KEEPERHUB_* vars
-              are set on the API, SOS prefers KeeperHub (organisation wallet); otherwise MetaMask sends nearly all ETH
-              minus a gas buffer. Never reuse on prod keys without safeguards.
+              Use a funded test wallet on Sepolia/Base Sepolia/etc. SOS sends nearly all ETH minus a gas buffer — never reuse this flow on prod keys without safeguards.
             </div>
           </div>
         </article>
@@ -474,9 +436,6 @@ export default function AegisStudio() {
               SOS complete. Recipient {shortAddr(sosResult.trustedContact)} • tx{' '}
               {sosResult.transferTxHash.slice(0, 12)}...
               {typeof sosResult.chainId === 'string' ? ` • chain ${sosResult.chainId}` : ''}.
-              {sosResult.keeperHubExecutionId
-                ? ` • KeeperHub ${sosResult.keeperHubExecutionId.slice(0, 18)}…`
-                : ''}
             </div>
           )}
           <p className="muted small">

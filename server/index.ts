@@ -1,4 +1,4 @@
-/// <reference lib="dom" />
+import 'dotenv/config'
 import crypto from 'node:crypto'
 
 import cors from 'cors'
@@ -10,7 +10,15 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 
 
 const PORT = Number(process.env.AEGIS_API_PORT ?? 8787)
 const TOKEN = process.env.PINATA_JWT ?? ''
-const IPFS_GATEWAY = (process.env.IPFS_GATEWAY ?? 'https://gateway.pinata.cloud/ipfs').replace(/\/+$/, '')
+const PINATA_GATEWAY = (process.env.PINATA_GATEWAY ?? '').trim()
+const FALLBACK_GATEWAY = (process.env.IPFS_GATEWAY ?? 'https://gateway.pinata.cloud/ipfs').replace(/\/+$/, '')
+
+function buildGatewayUrl(cid: string): string {
+  if (PINATA_GATEWAY) {
+    return `https://${PINATA_GATEWAY}/ipfs/${cid}`
+  }
+  return `${FALLBACK_GATEWAY}/${cid}`
+}
 
 app.use(cors({ origin: true }))
 app.use(express.json({ limit: '1mb' }))
@@ -19,7 +27,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     pinataConfigured: Boolean(TOKEN.length),
-    ipfsGateway: IPFS_GATEWAY,
+    gateway: PINATA_GATEWAY || FALLBACK_GATEWAY,
     port: PORT,
   })
 })
@@ -35,11 +43,14 @@ app.post('/api/ipfs/upload', upload.single('file'), async (req, res) => {
     `evidence-${Date.now()}`
 
   const form = new FormData()
-  const blob = new Blob([req.file.buffer], { type: req.file.mimetype || 'application/octet-stream' })
+  const blob = new Blob([new Uint8Array(req.file.buffer)], {
+    type: req.file.mimetype || 'application/octet-stream',
+  })
   form.append('file', blob, fileName)
+  form.append('network', 'public')
 
   try {
-    const pinRes = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+    const pinRes = await fetch('https://uploads.pinata.cloud/v3/files', {
       method: 'POST',
       headers: { Authorization: `Bearer ${TOKEN}` },
       body: form,
@@ -48,21 +59,21 @@ app.post('/api/ipfs/upload', upload.single('file'), async (req, res) => {
     const bodyText = await pinRes.text()
     if (!pinRes.ok) return res.status(502).json({ error: bodyText.slice(0, 400) })
 
-    let parsed: { IpfsHash?: string }
+    let parsed: { data?: { cid?: string; name?: string } }
     try {
-      parsed = JSON.parse(bodyText) as { IpfsHash?: string }
+      parsed = JSON.parse(bodyText) as { data?: { cid?: string; name?: string } }
     } catch {
       return res.status(502).json({ error: 'Pinata responded with invalid JSON' })
     }
 
-    const cid = parsed?.IpfsHash ?? ''
-    if (!cid) return res.status(502).json({ error: 'Unexpected Pinata response (missing IpfsHash)' })
+    const cid = parsed?.data?.cid ?? ''
+    if (!cid) return res.status(502).json({ error: 'Unexpected Pinata response (missing data.cid)' })
 
     return res.status(200).json({
-      fileName,
+      fileName: parsed?.data?.name ?? fileName,
       cid,
       sha256: digest,
-      gatewayUrl: `${IPFS_GATEWAY}/${cid}`,
+      gatewayUrl: buildGatewayUrl(cid),
     })
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unexpected error'

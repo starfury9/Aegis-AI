@@ -84,7 +84,7 @@ export async function prepareEmergencyTransfer(): Promise<{ transferPreview: str
         timestamp: now(),
         agent: 'Finance Agent',
         action: 'Emergency transfer route prepared',
-        details: `Validated trusted destination ${transferPreview.slice(0, 10)}... for SOS execution.`,
+        details: `Prepared SOS funding preview ${transferPreview.slice(0, 10)}... (resolved at trigger time when wallet is connected).`,
         severity: 'high',
       },
     ],

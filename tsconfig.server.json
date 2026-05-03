@@ -5,6 +5,7 @@
     "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "types": ["node"],
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
@@ -15,5 +16,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["server/**/*.ts"]
+  "include": ["server/**/*.ts", "api/**/*.ts"]
 }

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>Aegis AI logo mark</title>
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+  <path
+    fill="#6366f1"
+    d="M256 88L128 168v192c0 88 86 124 128 144 42-20 128-56 128-144V168L256 88z"
+    opacity=".35"
+  />
+  <path
+    fill="#a855f7"
+    d="M256 118L154 178v154c0 68 61 105 102 126 41-21 102-58 102-126V178L256 118z"
+  />
+  <path
+    stroke="#e2e8f0"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    d="M256 206v92M216 246h80"
+    opacity=".9"
+  />
+  <circle cx="256" cy="252" r="28" stroke="#93c5fd" stroke-width="10" fill="none" opacity=".85"/>
+</svg>

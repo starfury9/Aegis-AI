@@ -39,7 +39,9 @@ export default function DashboardPage() {
           <h2>Evidence pipeline</h2>
           <p className="status">Ready</p>
           <p className="muted small">
-            Backend <code className="site-code">/api/ipfs/upload</code> · requires <code className="site-code">PINATA_JWT</code> server-side.
+            Backend <code className="site-code">/api/ipfs/upload</code> · 0G Storage via{' '}
+            <code className="site-code">OG_STORAGE_PRIVATE_KEY</code> + indexer (see{' '}
+            <code className="site-code">.env.example</code>).
           </p>
         </article>
         <article className="card">

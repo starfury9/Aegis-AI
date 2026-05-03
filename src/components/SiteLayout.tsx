@@ -11,7 +11,10 @@ export default function SiteLayout() {
     <div className="site-root">
       <header className="site-header">
         <NavLink className="site-brand" to="/">
-          Aegis AI
+          <span className="site-brand-lockup">
+            <img src="/aegis-logo-mark.svg" alt="" width={32} height={32} className="site-brand-icon" decoding="async" />
+            <span>Aegis AI</span>
+          </span>
         </NavLink>
         <nav className="site-links" aria-label="Primary">
           <NavLink className={navCls} to="/" end>

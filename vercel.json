@@ -1,3 +1,11 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "functions": {
+    "api/ipfs/upload.ts": {
+      "maxDuration": 60
+    },
+    "api/sos/keeperhub.ts": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }

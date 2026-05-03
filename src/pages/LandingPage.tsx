@@ -38,7 +38,7 @@ export default function LandingPage() {
         </article>
         <article className="card">
           <h2>Evidence locker</h2>
-          <p className="muted">Hash-first uploads through your Pinata-backed API when configured.</p>
+          <p className="muted">Evidence flows to decentralized 0G Storage when your API wallet is funded.</p>
         </article>
       </section>
     </div>

@@ -41,6 +41,7 @@ export async function uploadEvidenceViaApi(file: File): Promise<EvidenceRecord> 
     sha256: string
     gatewayUrl?: string
     fileName?: string
+    txHash?: string
   }
 
   return {
@@ -49,6 +50,6 @@ export async function uploadEvidenceViaApi(file: File): Promise<EvidenceRecord> 
     cid: data.cid,
     sha256: data.sha256,
     gatewayUrl: data.gatewayUrl,
-    txHash: undefined,
+    txHash: data.txHash,
   }
 }

@@ -22,6 +22,17 @@
   letter-spacing: -0.02em;
 }
 
+.site-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-brand-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
 .site-links {
   display: flex;
   flex-wrap: wrap;

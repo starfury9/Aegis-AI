@@ -32,6 +32,7 @@ export interface EvidenceRecord {
   id: string
   fileName: string
   sha256: string
+  /** 0G Storage root hash (shown as CID in UI for compatibility). */
   cid: string
   gatewayUrl?: string
   txHash?: string
@@ -42,4 +43,6 @@ export interface SosResult {
   wipeStatus: 'completed'
   trustedContact: string
   chainId?: string
+  /** Present when SOS used KeeperHub Direct Execution. */
+  keeperHubExecutionId?: string
 }

@@ -11,6 +11,7 @@ import {
   EvidenceUploadError,
   uploadEvidenceViaApi,
 } from './lib/evidenceApi'
+import { keeperHubSosAdvertisedReady, requestKeeperHubSos } from './lib/keeperhubSosApi'
 import {
   connectBrowserWallet,
   normalizeAddress,
@@ -155,8 +156,8 @@ export default function AegisStudio() {
           agent: 'Evidence Agent',
           action: 'Evidence sealed',
           details: record.gatewayUrl
-            ? `Uploaded to IPFS. Gateway: ${record.gatewayUrl}`
-            : `Pinned to IPFS CID ${record.cid}`,
+            ? `Sealed on 0G Storage. Root hash ${record.cid}. Verify via ${record.gatewayUrl}`
+            : `Sealed on 0G Storage. Root hash ${record.cid}`,
           severity: 'high',
         },
       ])
@@ -177,7 +178,22 @@ export default function AegisStudio() {
 
   const runSosEmergency = async (
     resolvedTrusted: string,
-  ): Promise<{ result: SosResult; mode: 'chain' | 'demo' }> => {
+  ): Promise<{ result: SosResult; mode: 'keeperhub' | 'chain' | 'demo' }> => {
+    const useKeeperhub = await keeperHubSosAdvertisedReady()
+    if (useKeeperhub) {
+      const kh = await requestKeeperHubSos(resolvedTrusted)
+      return {
+        mode: 'keeperhub',
+        result: {
+          wipeStatus: 'completed',
+          trustedContact: kh.trustedContact,
+          transferTxHash: kh.transferTxHash,
+          chainId: kh.chainId,
+          keeperHubExecutionId: kh.keeperHubExecutionId,
+        },
+      }
+    }
+
     if (signerRef.current && providerRef.current) {
       const receipt = await sendEmergencyEthTransfer({
         signer: signerRef.current,
@@ -200,23 +216,35 @@ export default function AegisStudio() {
     return { mode: 'demo', result: mocked.result }
   }
 
-  const finalizeSosLogs = (result: SosResult, mode: 'chain' | 'demo') => {
+  const finalizeSosLogs = (result: SosResult, mode: 'keeperhub' | 'chain' | 'demo') => {
     setEvidence(null)
     setPlan([])
     setRisk(null)
+
+    const modeLabel =
+      mode === 'keeperhub'
+        ? 'Emergency protocol executed (KeeperHub)'
+        : mode === 'chain'
+          ? 'Emergency protocol executed (MetaMask signer)'
+          : 'Emergency protocol executed (offline demo)'
+
+    const detailParts =
+      mode === 'demo'
+        ? [`Simulated transfer hash ${result.transferTxHash}`]
+        : [
+            ...(result.chainId ? [`Chain ${result.chainId}`] : []),
+            `Tx ${result.transferTxHash}`,
+            ...(mode === 'keeperhub' && result.keeperHubExecutionId
+              ? [`KeeperHub execution ${result.keeperHubExecutionId}`]
+              : []),
+          ]
 
     const entry: AgentLog = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
       agent: 'SOS Agent',
-      action:
-        mode === 'chain'
-          ? 'Emergency protocol executed (on-chain transfer)'
-          : 'Emergency protocol executed (offline demo)',
-      details:
-        mode === 'chain'
-          ? `Chain ${result.chainId ?? 'unknown'}, tx hash ${result.transferTxHash}`
-          : `Simulated SOS transfer hash ${result.transferTxHash}`,
+      action: modeLabel,
+      details: detailParts.join(' · '),
       severity: 'critical',
     }
 
@@ -356,7 +384,9 @@ export default function AegisStudio() {
               />
             </label>
             <div className="muted">
-              Use a funded test wallet on Sepolia/Base Sepolia/etc. SOS sends nearly all ETH minus a gas buffer — never reuse this flow on prod keys without safeguards.
+              Use a funded test wallet on Sepolia/Base Sepolia/etc. When VITE_SOS_USE_KEEPERHUB=true and KEEPERHUB_* vars
+              are set on the API, SOS prefers KeeperHub (organisation wallet); otherwise MetaMask sends nearly all ETH
+              minus a gas buffer. Never reuse on prod keys without safeguards.
             </div>
           </div>
         </article>
@@ -408,22 +438,21 @@ export default function AegisStudio() {
           {evidence && (
             <div className="stack">
               <p>File: {evidence.fileName}</p>
-              <p>CID: {evidence.cid}</p>
+              <p>0G root hash: {evidence.cid}</p>
               <p>SHA-256: {evidence.sha256}</p>
               {evidence.txHash ? <p>Anchor tx (optional): {evidence.txHash}</p> : null}
               {evidence.gatewayUrl ? (
                 <a className="link" href={evidence.gatewayUrl} target="_blank" rel="noreferrer">
-                  Open pinned file on gateway
+                  Verify on 0G Storage Scan
                 </a>
               ) : (
-                <p className="muted">Gateway unavailable for this CID.</p>
+                <p className="muted">No Storage Scan URL returned from API.</p>
               )}
             </div>
           )}
           <div className="muted small">
-            Upload proxies to Pinata v3 via your local `/api/ipfs/upload`. Start
-            {' '}
-            `PINATA_JWT=... npm run dev:api`.
+            Evidence uploads use 0G Storage through /api/ipfs/upload. Set OG_STORAGE_* in .env.example on the API
+            host and run npm run dev:api with a funded OG testnet wallet (faucet.0g.ai).
           </div>
         </article>
 
@@ -445,6 +474,9 @@ export default function AegisStudio() {
               SOS complete. Recipient {shortAddr(sosResult.trustedContact)} • tx{' '}
               {sosResult.transferTxHash.slice(0, 12)}...
               {typeof sosResult.chainId === 'string' ? ` • chain ${sosResult.chainId}` : ''}.
+              {sosResult.keeperHubExecutionId
+                ? ` • KeeperHub ${sosResult.keeperHubExecutionId.slice(0, 18)}…`
+                : ''}
             </div>
           )}
           <p className="muted small">
